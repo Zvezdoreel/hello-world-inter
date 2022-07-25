@@ -8,6 +8,6 @@ RUN pip install -r requirements.txt
 
 COPY src/ .
 
-MKDIR /tmp/test
+RUN /tmp/test
 
 CMD [ "python", "./hello-world.py" ]
