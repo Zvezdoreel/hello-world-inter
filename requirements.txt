@@ -1,5 +1,0 @@
-pytest
-pylint
-black
-Flask
-pylint_junit
