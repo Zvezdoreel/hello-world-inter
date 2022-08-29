@@ -26,7 +26,7 @@ app.get('/ping', (req, res) => {
 
 app.get('/status', (req, res) => {
   var uptime = process.uptime();
-  res.send(format(uptime))
+  res.send(`{\n"uptime": "${format(uptime)}"\n}`)
 })
 
 
