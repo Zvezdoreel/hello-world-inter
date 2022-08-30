@@ -14,22 +14,23 @@ function format(seconds){
   return pad(hours) + ':' + pad(minutes) + ':' + pad(seconds);
 }
 
-
+function ping(){
+    return "pong";
+  }
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Hello World!');
 })
 
 app.get('/ping', (req, res) => {
-  res.status(200);
-  res.send('Pong!')
+  res.status(200).send(ping());
 })
 
 app.get('/status', (req, res) => {
   var uptime = process.uptime();
-  res.send(`{\n"uptime": "${format(uptime)}"\n}`)
+  res.send(`{\n"uptime": "${format(uptime)}"\n}`);
 })
 
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`Example app listening on port ${port}`);
 })
