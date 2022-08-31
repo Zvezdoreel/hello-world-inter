@@ -1,3 +1,4 @@
+const process = require("process")
 const express = require('express')
 const app = express()
 const port = 5000
@@ -9,14 +10,15 @@ function format(seconds){
   }
   var hours = Math.floor(seconds / (60*60));
   var minutes = Math.floor(seconds % (60*60) / 60);
-  var seconds = Math.floor(seconds % 60);
+  var secs = Math.floor(seconds % 60);
 
-  return pad(hours) + ':' + pad(minutes) + ':' + pad(seconds);
+  return pad(hours) + ':' + pad(minutes) + ':' + pad(secs);
 }
 
 function ping(){
     return "pong";
   }
+module.exports = ping;
 app.get('/', (req, res) => {
   res.send('Hello World!');
 })
