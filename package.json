@@ -9,5 +9,19 @@
   },
   "scripts": {
     "test": "jest"
-  }
+  },
+  "name": "appjs",
+  "version": "1.0.0",
+  "description": "interviewapp",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zvezdoreel/hello-world-inter.git"
+  },
+  "author": "arkashka kakashka",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Zvezdoreel/hello-world-inter/issues"
+  },
+  "homepage": "https://github.com/Zvezdoreel/hello-world-inter#readme"
 }
