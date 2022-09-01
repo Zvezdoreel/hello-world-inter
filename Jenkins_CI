@@ -1,0 +1,103 @@
+pipeline {
+    agent {
+    kubernetes {
+      yaml '''
+        apiVersion: v1
+        kind: Pod
+        spec:
+          containers:
+          - name: njs
+            image: node:latest
+            command:
+            - sleep
+            args:
+            - infinity
+          - name: docker
+            image: docker:latest
+            command:
+            - cat
+            tty: true
+            volumeMounts:
+             - mountPath: /var/run/docker.sock
+               name: docker-sock
+          volumes:
+          - name: docker-sock
+            hostPath:
+              path: /var/run/docker.sock 
+        '''
+      defaultContainer 'njs'
+    }
+  }
+    stages {
+        stage('Fetch') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '${ghprbActualCommit}']],
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        credentialsId: '2',
+                        refspec: ' +refs/pull/*:refs/remotes/origin/pr/*',
+                        url: 'https://github.com/Zvezdoreel/hello-world-inter.git'
+                        ]]
+                ])
+            }
+        }
+        stage("Build"){
+            steps{
+                sh "npm install"
+            }
+        }
+        stage('Run Lint') {
+            steps{
+                sh " node ./node_modules/eslint/bin/eslint.js -f junit ./ > eslint.xml"
+            }
+            post {
+                always {
+                   junit('eslint.xml')
+                }
+            }
+        }
+        stage('Run Unit test') {
+            steps{
+                sh "npm test"
+            }
+            post {
+                always {
+                    junit('junit.xml')
+                }
+            }
+        }
+        stage('Start Server'){
+            steps{
+                container('docker') {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '${ghprbActualCommit}']],
+                        extensions: [],
+                        userRemoteConfigs: [[
+                            credentialsId: '2',
+                            refspec: ' +refs/pull/*:refs/remotes/origin/pr/*',
+                            url: 'https://github.com/Zvezdoreel/hello-world-inter.git'
+                            ]]
+                    ])  
+                    sh 'apk add git'
+                    sh "git config --global --add safe.directory '*'"
+		            sh 'git archive --format tar.gz HEAD -o ./prodection_archive.tar.gz'
+                    sh 'docker build -t testing_app:latest .'
+                    sh 'docker run -d --name test_cont -p 5000:5000 testing_app'
+                    sh 'apk add curl'
+                    sh 'resp=$(curl -sb -H  http://172.17.0.1:5000/ping);[ "$resp" == "pong" ]  && echo "valid" || exit 1'
+                }
+            }
+            post {
+                always {
+                    container('docker') {
+                        sh 'docker stop test_cont'
+                        sh 'docker rm test_cont'
+                    }
+                }
+            }
+        }
+    }
+}
