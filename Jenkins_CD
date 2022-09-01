@@ -1,0 +1,58 @@
+pipeline {
+    agent {
+        kubernetes {
+          yaml '''
+            apiVersion: v1
+            kind: Pod
+            spec:
+              containers:
+              - name: docker
+                image: docker:latest
+                command:
+                - cat
+                tty: true
+                volumeMounts:
+                 - mountPath: /var/run/docker.sock
+                   name: docker-sock
+              volumes:
+              - name: docker-sock
+                hostPath:
+                  path: /var/run/docker.sock 
+            '''
+          defaultContainer 'docker'
+        }
+    }
+    stages {
+        stage('Fetch') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'main']],
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        credentialsId: '2',
+                        url: 'https://github.com/Zvezdoreel/hello-world-inter.git'
+                        ]]
+                ])
+            }
+        }
+        stage("Build"){
+            steps{
+                sh 'docker build -t prod_app:latest .'
+                sh 'docker run -d --name test_cont -p 5000:5000 prod_app'
+                sh 'apk add curl'
+            }
+        }
+        stage('Run API test and remove container') {
+            steps{
+                sh 'resp=$(curl -sb -H  http://172.17.0.1:5000/ping);[ "$resp" == "pong" ]  && echo "valid" || exit 1'
+            }
+            post {
+                always {
+                    sh 'docker stop test_cont'
+                    sh 'docker rm test_cont'
+                }
+            }
+        }
+    }
+}
