@@ -39,6 +39,7 @@ pipeline {
         stage("Build"){
             steps{
 				sh 'apk add git'
+                sh "git config --global --add safe.directory '*'"
 				sh 'git archive --format tar.gz main -o ./prodection_archive.tar.gz --worktree-attributes'
                 sh 'docker build -t prod_app:latest .'
                 sh 'docker run -d --name test_cont -p 5000:5000 prod_app'
